@@ -8,25 +8,41 @@ messageBox = None  # Declare messageBox as a global variable
 
 #Shuts down all windows
 def clickExit():
-    root.quit()
+    exit = Toplevel(root)
+    exit.title("Exit")
+    root.geometry("600x400")
+
+    exitLabel = Label(exit, text= "Are you sure you want to exit?")
+    exitLabel.pack()
+    
+    yesButton = Button(exit, text = "Yes", command = root.quit)
+    yesButton.pack()
+
+    noButton = Button(exit, text = "No", command = exit.destroy)
+    noButton.pack()
 
 #Displays game instructions to user in seperate window
 def showIntructions():
 
-    root = Tk()
+    instructions = Tk()
 
-    root.title("How to Play")
-    root.geometry("800x600")
+    instructions.title("How to Play")
+    instructions.geometry("800x600")
     instructions_font = ("Helvetica", 25)
 
-    text_widget = Text(root, font = instructions_font)
+    text_widget = Text(instructions, font = instructions_font)
     text_widget.insert(INSERT, "How to Play Spin to Win\n\n Goal of the game: Be the first to solve the puzzle on the board. \n\n First Round: The player will take their turn before the CPU. In the first round, the player has to click Spin to Win. The players spin will display in the message box where they will be prompted to guess a consonant.\n\n")
     text_widget.insert(INSERT, "Guessing Right: If the player guesses correctly, they win the prize they spun from the wheel and they get to guess again. Guessing continues until player guesses incorectly or lands on BANKRUPT or\nLose a Turn.\n\n" )
     text_widget.insert(INSERT, "Landing on Bankrupt or Lose a Turn: If a player lands on Bankrupt, they lose all of the money they\nhad collected so far and their turn is over. If a player lands on Lose a Turn, their turn is over and their turn gets skipped in the next round.\n\n")
-    text_widget.insert(INSERT, "Buying Vowels and Solving: Players are given the option to buy a vowel for $250 during their turn. If\nthe player guesses wrong, they lose $250 and if they guess right, they can keep it. Players are also\ngiven the option to solve the puzzle after the first round and after they have guessed a letter correctly or bought a vowel. If a player chooses to solve the puzzle and is wrong, they lose their turn")
+    text_widget.insert(INSERT, "Buying Vowels and Solving: Players are given the option to buy a vowel for $250 during their turn. If\nthe player guesses wrong, they lose $250 and if they guess right, they can keep it. Players are also\ngiven the option to solve the puzzle after the first round and after they have guessed a letter correctly or bought a vowel. If a player chooses to solve the puzzle and is wrong, they lose their turn\n\n")
+    text_widget.insert(INSERT, "Risks and Rewards: Buying a vowel is a smart move if you have enough money. Every word contains a vowel and there are only so many to choose from. However, if you guess a vowel incorrectly, you will lose $250. If you think you know the puzzle, is it better to solve right away, or risk it and spin\nagain? The risk with spinning again is you may land on bankrupt and lose your turn.")
     text_widget.pack() 
 
-    root.mainloop()
+    goBack = Button(instructions, text = "BACK", command = instructions.destroy)
+
+    goBack.pack()
+
+    instructions.mainloop()
 
 #Game window
 def newWindow():
