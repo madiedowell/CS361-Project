@@ -2,15 +2,17 @@ from tkinter import *
 from time import sleep
 from PIL import Image, ImageTk
 import random
+import ast
 
 
 messageBox = None  # Declare messageBox as a global variable
 
+
 #Shuts down all windows
 def clickExit():
-    exit = Toplevel(root)
+    exit = Toplevel(welcomeWindow)
     exit.title("Exit")
-    root.geometry("600x400")
+    welcomeWindow.geometry("600x400")
 
     exitLabel = Label(exit, text= "Are you sure you want to exit?")
     exitLabel.pack()
@@ -44,32 +46,83 @@ def showIntructions():
 
     instructions.mainloop()
 
+
+def showWordAndCategory():
+    with open('SpinToWinInput.txt', 'w') as file1:
+        file1.write('get')
+        file1.close()
+
+
+#Store word and category
+def getWordAndCategory():
+    with open('SpinToWinOutput.txt', 'r') as file2:
+        response = file2.readline().strip()
+        tuple_response = ast.literal_eval(response)
+        file2.close()
+    category = tuple_response[0]
+    word = tuple_response[1]
+    underscored_word = " _ " * len(word)
+    return underscored_word, category, word
+
+
+def getGuess():
+    guessWindow = Tk()
+    def storeGuess():
+        guess = textentry.get()
+        print(f"guess: {guess}")
+
+        if guess == "" :
+            print("Guess has not been made")
+        elif guess in word:
+            print("Guess is in word")
+        else:
+            print("Guess is not in word")
+
+        #checkGuess()
+        return guess
+    guessWindow.geometry("100x50")
+    textentry = Entry(guessWindow, width=10)
+    textentry.grid(row=4, column=0, sticky='s') 
+    submit_button = Button(guessWindow, text="Submit", command= storeGuess)
+    submit_button.grid(row=5, column=0, sticky="n")  
+    guessWindow.mainloop() 
+
+
+ #Produces value randomly from list and prints it in the message box
+def showSpin():
+    spins = ["$100", "$200", "$300", "$400", "$500", "$600", "$700", "$800", "$900", "$1,000", "BANKRUPT", "Lose a Turn"]
+    players_spin = random.choice(spins)
+    random_spin = "Message Box\n" + players_spin + "\n\nGuess a consonant for " + players_spin + ": "
+    messageBox.config(text= random_spin)
+    getGuess()
+
+
+#----------------------------------------------------------------------------------------------------------------------------------
+    #tKinter window
+
+#----------------------------------------------------------------------------------------------------------------------------------
 #Game window
-def newWindow():
+def newWindow():    
+    gameWindow = Tk()
 
-    #Produces value randomly from list and prints it in the message box
-    def showSpin():
-        spins = ["$100", "$200", "$300", "$400", "$500", "$600", "$700", "$800", "$900", "$1,000", "BANKRUPT", "Lose a Turn"]
-        random_spin = "Message Box\n" + random.choice(spins)
-        messageBox.config(text= random_spin)
-
-    root = Tk()
-
-    root.title("Spin to Win")
-    root.geometry("800x600")
+    gameWindow.title("Spin to Win")
+    gameWindow.geometry("800x600")
     category_font = ("Noto Sans", 25)
     button_font = ("Helvetica", 25)
     letter_font = ("Helvetica", 17)
     underscore_font = ("Helvetica", 30)
-    root.configure(bg="light blue")
+    gameWindow.configure(bg="light blue")
 
-    #Displays random word from list on game board. Represented with underscores.
-    words = ["apple", "dog", "cat", "house", "ball", "car", "family", "friend"]
-    random_word = random.choice(words)
-    underscored_word = " _ " * len(random_word)
+    showWordAndCategory()
+
+    underscored_word, category, word = getWordAndCategory()
+    print(f"Underscored Word: {underscored_word}")
+    print(f"Category: {category}")
+    print(f"Word: {word}")
+
 
     #Game Board
-    board = Label(root, 
+    board = Label(gameWindow, 
         text= underscored_word, 
         width = 45, 
         height = 10, 
@@ -84,8 +137,8 @@ def newWindow():
     board.grid(row=0, column=0, padx=10, pady=20)
 
     #Category
-    category = Label(root, 
-        text= "Category", 
+    category = Label(gameWindow, 
+        text= category, 
         width = 25, 
         height = 1,
         relief="solid", 
@@ -100,7 +153,7 @@ def newWindow():
     category.grid(row=1, column=0, pady=10)
 
     #Spin to win button,
-    spinToWin = Button(root,
+    spinToWin = Button(gameWindow,
             text = "Spin to Win",
             font = button_font,
             command = showSpin)
@@ -109,14 +162,14 @@ def newWindow():
     
 
     #Buy a Vowel button
-    buyAVowel = Button(root,
+    buyAVowel = Button(gameWindow,
             text = "Buy a vowel",
             font = button_font)
     
     buyAVowel.grid(row=3, column=0, pady =5 , sticky="w")
 
     #Solve button
-    solve = Button(root,
+    solve = Button(gameWindow,
             text = "Solve",
             font = button_font)
     
@@ -124,7 +177,7 @@ def newWindow():
 
     #Message box for input/output
     global messageBox
-    messageBox = Label(root, 
+    messageBox = Label(gameWindow, 
         text= "Message Box", 
         width = 30, 
         height = 10, 
@@ -136,8 +189,16 @@ def newWindow():
     
     messageBox.grid(row= 5, column=0, pady = 5, padx = 5, sticky = "w")
 
+    def displayTurnMessage():
+        turn_message = "It's your turn first. Click Spin to Win!"
+        current_text = messageBox.cget("text")  # Get the current text in messageBox
+        updated_text = f"{current_text}\n\n{turn_message}"  # Add the turn message below the existing text
+        messageBox.config(text=updated_text)  # Update the text of messageBox
+
+    displayTurnMessage()  # Call the function to display the message in messageBox
+
     #Score box. Displays player and CPU scores. 
-    scoreBox = Label(root, 
+    scoreBox = Label(gameWindow, 
         text= "Score Box", 
         width = 30, 
         height = 10, 
@@ -150,7 +211,7 @@ def newWindow():
     scoreBox.grid(row= 5, column=0, pady = 5, padx = 5, sticky = "e")
 
     #Shows available vowels
-    vowels = Label(root,
+    vowels = Label(gameWindow,
         text = "vowels\n\n a   e   i   o   u",
         width = 20,
         height = 10,
@@ -164,7 +225,7 @@ def newWindow():
     vowels.grid(row=0, column=1, padx= 20)
 
     #Shows available consonants
-    consonants = Label(root,
+    consonants = Label(gameWindow,
         text = "consonants\n\n b   c   d   f   g   h   j   k\nl   m   n   p   q   r   s   t\n   v   w   x   y   z",
         width = 30,
         height = 10,
@@ -176,17 +237,17 @@ def newWindow():
         anchor = "n")
     
     consonants.grid(row=0, column=2, padx = 20)
-
-    root.mainloop()
+    
+    gameWindow.mainloop()
 
 #Welcome screen
-root = Tk()
+welcomeWindow = Tk()
 
-root.title("Spin to Win")
-root.geometry("800x600")
+welcomeWindow.title("Spin to Win")
+welcomeWindow.geometry("800x600")
 welcome_font = ("Helvetica", 50)
 button_font = ("Helvetica", 25)
-root.configure(bg="lightblue")
+welcomeWindow.configure(bg="lightblue")
 
 
 image = Image.open("/Users/madiedowell/Documents/CS361/Assignment5/wheel2.jpeg")
@@ -194,7 +255,7 @@ resizeImage = image.resize((600, 500))
 resizeImage.save("/Users/madiedowell/Documents/CS361/Assignment5/wheel2.jpeg")
 photo = ImageTk.PhotoImage(image)
 
-myLabel1 = Label(root, 
+myLabel1 = Label(welcomeWindow, 
     text = "Welcome to Spin to Win!", 
     font = welcome_font,
     fg = "blue",
@@ -203,7 +264,7 @@ myLabel1 = Label(root,
 myLabel1.pack(pady = 20)
 
 #New game button
-myButton1 = Button(root, 
+myButton1 = Button(welcomeWindow, 
     text = "NEW GAME",
     font = button_font,
     fg = "blue",
@@ -213,7 +274,7 @@ myButton1 = Button(root,
 myButton1.pack(pady = 5)
 
 #How to play button
-myButton2 = Button(root,
+myButton2 = Button(welcomeWindow,
     text = "HOW TO PLAY",
     font = button_font,
     fg = "blue",
@@ -223,7 +284,7 @@ myButton2 = Button(root,
 myButton2.pack(pady = 5)
 
 #Exit button
-myButton3 = Button(root, 
+myButton3 = Button(welcomeWindow, 
     text = "EXIT",
     font = button_font,
     fg = "blue",
@@ -233,7 +294,7 @@ myButton3 = Button(root,
 myButton3.pack(pady = 5)
 
 #Wheel image
-imageLabel = Label(root, image=photo,)
+imageLabel = Label(welcomeWindow, image=photo,)
 imageLabel.pack(pady = 20) 
 
-root.mainloop()
+welcomeWindow.mainloop()
