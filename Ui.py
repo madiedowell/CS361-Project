@@ -80,15 +80,13 @@ def getWordAndCategory():
 def fillGameBoard(guess, word):
     global board_label
 
-    underscored_word = list(" _ " * len(word))
+    underscored_word = list("_ " * len(word))
 
     for index, letter in enumerate(word):
         if letter == guess:
             print(f"Letter '{guess}' found at index {index} in the word '{word}'")
             letter_position = index
-            underscored_word[letter_position * 2 + 1] = guess
-
-            
+            underscored_word[letter_position * 2] = guess
 
     underscored_word = ''.join(underscored_word)
     print(underscored_word)
@@ -184,8 +182,6 @@ def newWindow():
     gameWindow.configure(bg="light blue")
 
     showWordAndCategory()
-
-    
 
 
     #Game Board
