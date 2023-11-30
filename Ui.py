@@ -17,7 +17,7 @@ def clickExit():
     exitLabel = Label(exit, text= "Are you sure you want to exit?")
     exitLabel.pack()
     
-    yesButton = Button(exit, text = "Yes", command = root.quit)
+    yesButton = Button(exit, text = "Yes", command = welcomeWindow.quit)
     yesButton.pack()
 
     noButton = Button(exit, text = "No", command = exit.destroy)
@@ -46,7 +46,7 @@ def showIntructions():
 
     instructions.mainloop()
 
-
+#Starts microservice process
 def showWordAndCategory():
     with open('SpinToWinInput.txt', 'w') as file1:
         file1.write('get')
@@ -58,14 +58,15 @@ def getWordAndCategory():
     with open('SpinToWinOutput.txt', 'r') as file2:
         response = file2.readline().strip()
         tuple_response = ast.literal_eval(response)
+        
+        category = tuple_response[0]
+        word = tuple_response[1]
+        underscored_word = " _ " * len(word)
         file2.close()
-    category = tuple_response[0]
-    word = tuple_response[1]
-    underscored_word = " _ " * len(word)
     return underscored_word, category, word
 
-
-def getGuess():
+#Gets users guess and validates it
+def getGuess(word):
     guessWindow = Tk()
     def storeGuess():
         guess = textentry.get()
@@ -89,12 +90,13 @@ def getGuess():
 
 
  #Produces value randomly from list and prints it in the message box
-def showSpin():
+def showSpin(word):
     spins = ["$100", "$200", "$300", "$400", "$500", "$600", "$700", "$800", "$900", "$1,000", "BANKRUPT", "Lose a Turn"]
     players_spin = random.choice(spins)
     random_spin = "Message Box\n" + players_spin + "\n\nGuess a consonant for " + players_spin + ": "
     messageBox.config(text= random_spin)
-    getGuess()
+    getGuess(word)
+
 
 
 #----------------------------------------------------------------------------------------------------------------------------------
@@ -156,7 +158,7 @@ def newWindow():
     spinToWin = Button(gameWindow,
             text = "Spin to Win",
             font = button_font,
-            command = showSpin)
+            command = lambda: showSpin(word))
     
     spinToWin.grid(row=2, column=0, pady =5 , sticky="w")
     
@@ -239,6 +241,7 @@ def newWindow():
     consonants.grid(row=0, column=2, padx = 20)
     
     gameWindow.mainloop()
+    return word
 
 #Welcome screen
 welcomeWindow = Tk()

@@ -1,1 +1,1 @@
-('thing', 'butterfly')
+('person', 'governor')
