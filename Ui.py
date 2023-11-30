@@ -6,6 +6,7 @@ import ast
 
 
 messageBox = None  # Declare messageBox as a global variable
+board_label = None
 
 
 #Shuts down all windows
@@ -22,6 +23,8 @@ def clickExit():
 
     noButton = Button(exit, text = "No", command = exit.destroy)
     noButton.pack()
+
+    return
 
 #Displays game instructions to user in seperate window
 def showIntructions():
@@ -45,12 +48,19 @@ def showIntructions():
     goBack.pack()
 
     instructions.mainloop()
+    return
+
+def updateBoard(new_text):
+    global board_label
+    if board_label:
+        board_label.config(text=new_text)
 
 #Starts microservice process
 def showWordAndCategory():
     with open('SpinToWinInput.txt', 'w') as file1:
         file1.write('get')
         file1.close()
+    return
 
 
 #Store word and category
@@ -65,37 +75,92 @@ def getWordAndCategory():
         file2.close()
     return underscored_word, category, word
 
+
+
+def fillGameBoard(guess, word):
+    global board_label
+
+    underscored_word = list(" _ " * len(word))
+
+    for index, letter in enumerate(word):
+        if letter == guess:
+            print(f"Letter '{guess}' found at index {index} in the word '{word}'")
+            letter_position = index
+            underscored_word[letter_position * 2 + 1] = guess
+
+            
+
+    underscored_word = ''.join(underscored_word)
+    print(underscored_word)
+    
+    updateBoard(underscored_word)
+
+    return underscored_word
+
+    
+
+
+def storeGuess(textentry, word, submit_button):
+    guess = textentry.get()
+    print(f"guess: {guess}")
+
+    if guess == "" :
+        print("Guess has not been made")
+    elif guess in word:
+        print("Guess is in word")
+        guess_output = "Message Box\n\nThere is a " + guess + "."
+        messageBox.config(text= guess_output)
+        fillGameBoard(guess, word)
+    else:
+        print("Guess is not in word")
+        guess_output = "Message Box\n\nThere is no " + guess + ". It is player 2's turn."
+        messageBox.config(text= guess_output)
+    
+    #disable submit button after clicked once
+    submit_button.config(state=DISABLED)
+
+    #guessWindow.destroy()
+    #checkGuess()
+    return 
+
 #Gets users guess and validates it
 def getGuess(word):
-    guessWindow = Tk()
-    def storeGuess():
-        guess = textentry.get()
-        print(f"guess: {guess}")
 
-        if guess == "" :
-            print("Guess has not been made")
-        elif guess in word:
-            print("Guess is in word")
-        else:
-            print("Guess is not in word")
+    guessWindow = Tk()  
+    guessWindow.title("Enter Your Guess")
+    #guessWindow.geometry("100x50")
 
-        #checkGuess()
-        return guess
-    guessWindow.geometry("100x50")
     textentry = Entry(guessWindow, width=10)
-    textentry.grid(row=4, column=0, sticky='s') 
-    submit_button = Button(guessWindow, text="Submit", command= storeGuess)
-    submit_button.grid(row=5, column=0, sticky="n")  
+    #textentry.grid(row=4, column=0, sticky='s') 
+    textentry.pack()
+    submit_button = Button(guessWindow, text="Submit", command= lambda: storeGuess(textentry, word, submit_button))
+    #submit_button.grid(row=5, column=0, sticky="n")  
+    submit_button.pack()
+      
     guessWindow.mainloop() 
+    return submit_button
 
 
  #Produces value randomly from list and prints it in the message box
 def showSpin(word):
     spins = ["$100", "$200", "$300", "$400", "$500", "$600", "$700", "$800", "$900", "$1,000", "BANKRUPT", "Lose a Turn"]
     players_spin = random.choice(spins)
-    random_spin = "Message Box\n" + players_spin + "\n\nGuess a consonant for " + players_spin + ": "
-    messageBox.config(text= random_spin)
-    getGuess(word)
+    if players_spin == spins[10]:
+        print("Bankrupt")
+        random_spin = "Message Box\n" + players_spin + "\n\nUh Oh! You went bankrupt."
+        messageBox.config(text= random_spin)
+    elif players_spin == spins[11]:
+        print("Lose a turn")
+        random_spin = "Message Box\n" + players_spin + "\n\nUh Oh! You lost your next turn."
+        messageBox.config(text= random_spin)
+    else:
+        print("Value")
+        random_spin = "Message Box\n" + players_spin + "\n\nGuess a consonant for " + players_spin + ": "
+        messageBox.config(text= random_spin)
+        getGuess(word)
+
+    return
+    
 
 
 
@@ -107,6 +172,9 @@ def showSpin(word):
 def newWindow():    
     gameWindow = Tk()
 
+    global board_label
+    #welcomeWindow.destroy()
+
     gameWindow.title("Spin to Win")
     gameWindow.geometry("800x600")
     category_font = ("Noto Sans", 25)
@@ -117,15 +185,12 @@ def newWindow():
 
     showWordAndCategory()
 
-    underscored_word, category, word = getWordAndCategory()
-    print(f"Underscored Word: {underscored_word}")
-    print(f"Category: {category}")
-    print(f"Word: {word}")
+    
 
 
     #Game Board
-    board = Label(gameWindow, 
-        text= underscored_word, 
+    board_label = Label(gameWindow, 
+        #text= underscored_word, 
         width = 45, 
         height = 10, 
         relief="solid", 
@@ -136,7 +201,13 @@ def newWindow():
         highlightbackground="yellow",
         font=underscore_font)
     
-    board.grid(row=0, column=0, padx=10, pady=20)
+    board_label.grid(row=0, column=0, padx=10, pady=20)
+
+    underscored_word, category, word = getWordAndCategory()
+    updateBoard(underscored_word)
+    print(f"Underscored Word: {underscored_word}")
+    print(f"Category: {category}")
+    print(f"Word: {word}")
 
     #Category
     category = Label(gameWindow, 

@@ -1,1 +1,1 @@
-('person', 'governor')
+('place', 'Russia')
