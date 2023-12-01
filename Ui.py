@@ -65,13 +65,14 @@ def showWordAndCategory():
 
 #Store word and category
 def getWordAndCategory():
-    with open('SpinToWinOutput.txt', 'r') as file2:
+    with open('SpinToWinOutput.txt', 'r+') as file2:
         response = file2.readline().strip()
         tuple_response = ast.literal_eval(response)
         
         category = tuple_response[0]
         word = tuple_response[1]
         underscored_word = " _ " * len(word)
+        file2.truncate(0)
         file2.close()
     return underscored_word, category, word
 
