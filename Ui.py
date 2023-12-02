@@ -6,7 +6,11 @@ import ast
 
 
 messageBox = None  # Declare messageBox as a global variable
+scoreBox = None
 board_label = None
+underscored_word = None
+players_spin = None
+current_score = 1000
 
 
 #Shuts down all windows
@@ -66,6 +70,7 @@ def showWordAndCategory():
 #Store word and category
 def getWordAndCategory():
     with open('SpinToWinOutput.txt', 'r+') as file2:
+        sleep(2)
         response = file2.readline().strip()
         tuple_response = ast.literal_eval(response)
         
@@ -76,12 +81,30 @@ def getWordAndCategory():
         file2.close()
     return underscored_word, category, word
 
+def showScore():
+    global current_score
+    global messageBox
+    #current_score = 1000
+    current_score = str(current_score)
+    score = "Score Box\n\n$" + current_score
 
+    current_score = int(current_score)
+    if current_score <= 0:
+        loser_output = "Message Box\n\nYou lost!"
+        messageBox.config(text= loser_output)
+
+
+    scoreBox.config(text=score)
+    return
 
 def fillGameBoard(guess, word):
     global board_label
+    global underscored_word
 
-    underscored_word = list("_ " * len(word))
+    if underscored_word == None:
+        underscored_word = list("_ " * len(word))
+
+    underscored_word = list(underscored_word)
 
     for index, letter in enumerate(word):
         if letter == guess:
@@ -91,15 +114,11 @@ def fillGameBoard(guess, word):
 
     underscored_word = ''.join(underscored_word)
     print(underscored_word)
-    
-    updateBoard(underscored_word)
-
     return underscored_word
 
-    
 
-
-def storeGuess(textentry, word, submit_button):
+def storeGuess(textentry, word, submit_button, players_spin):
+    global current_score
     guess = textentry.get()
     print(f"guess: {guess}")
 
@@ -107,13 +126,25 @@ def storeGuess(textentry, word, submit_button):
         print("Guess has not been made")
     elif guess in word:
         print("Guess is in word")
-        guess_output = "Message Box\n\nThere is a " + guess + "."
+        guess_output = "Message Box\n\nThere is a " + guess + ". You get $" + players_spin + ". \nSpin again!"
         messageBox.config(text= guess_output)
         fillGameBoard(guess, word)
+        updateBoard(underscored_word)
+
+        players_spin = int(players_spin)
+        current_score = current_score + players_spin
+        players_spin = str(players_spin)
+
+        showScore()
     else:
         print("Guess is not in word")
         guess_output = "Message Box\n\nThere is no " + guess + ". It is player 2's turn."
         messageBox.config(text= guess_output)
+        players_spin = int(players_spin)
+        current_score = current_score - players_spin
+        players_spin = str(players_spin)
+
+        showScore()
     
     #disable submit button after clicked once
     submit_button.config(state=DISABLED)
@@ -123,7 +154,7 @@ def storeGuess(textentry, word, submit_button):
     return 
 
 #Gets users guess and validates it
-def getGuess(word):
+def getGuess(word, players_spin):
 
     guessWindow = Tk()  
     guessWindow.title("Enter Your Guess")
@@ -132,7 +163,7 @@ def getGuess(word):
     textentry = Entry(guessWindow, width=10)
     #textentry.grid(row=4, column=0, sticky='s') 
     textentry.pack()
-    submit_button = Button(guessWindow, text="Submit", command= lambda: storeGuess(textentry, word, submit_button))
+    submit_button = Button(guessWindow, text="Submit", command= lambda: storeGuess(textentry, word, submit_button, players_spin))
     #submit_button.grid(row=5, column=0, sticky="n")  
     submit_button.pack()
       
@@ -141,26 +172,131 @@ def getGuess(word):
 
 
  #Produces value randomly from list and prints it in the message box
-def showSpin(word):
-    spins = ["$100", "$200", "$300", "$400", "$500", "$600", "$700", "$800", "$900", "$1,000", "BANKRUPT", "Lose a Turn"]
+def showSpin(spinToWin, word):
+    global underscored_word
+    global current_score
+
+    spins = ["100", "200", "300", "400", "500", "600", "700", "800", "900", "1000", "BANKRUPT"]
     players_spin = random.choice(spins)
-    if players_spin == spins[10]:
-        print("Bankrupt")
-        random_spin = "Message Box\n" + players_spin + "\n\nUh Oh! You went bankrupt."
-        messageBox.config(text= random_spin)
-    elif players_spin == spins[11]:
-        print("Lose a turn")
-        random_spin = "Message Box\n" + players_spin + "\n\nUh Oh! You lost your next turn."
-        messageBox.config(text= random_spin)
+
+    if underscored_word != None:
+        noSpace_underscored_word = underscored_word.replace(" ", "")
+
+        if noSpace_underscored_word == word:
+            spinToWin.config(state=DISABLED)
+            return
+
+
+        elif players_spin == spins[10]:
+            print("Bankrupt")
+            random_spin = "Message Box\n" + players_spin + "\n\nUh Oh! You went bankrupt."
+            messageBox.config(text= random_spin)
+        else:
+            print("Value")
+            random_spin = "Message Box\n$" + players_spin + "\n\nGuess a consonant for " + players_spin + ": "
+            messageBox.config(text= random_spin)
+            getGuess(word, players_spin)
     else:
-        print("Value")
-        random_spin = "Message Box\n" + players_spin + "\n\nGuess a consonant for " + players_spin + ": "
-        messageBox.config(text= random_spin)
-        getGuess(word)
+        if players_spin == spins[10]:
+            print("Bankrupt")
+            random_spin = "Message Box\n" + players_spin + "\n\nUh Oh! You went bankrupt."
+            messageBox.config(text= random_spin)
+        else:
+            print("Value")
+            random_spin = "Message Box\n$" + players_spin + "\n\nGuess a consonant for " + players_spin + ": "
+            messageBox.config(text= random_spin)
+            getGuess(word, players_spin)
 
-    return
+    return 
+
+def checkVowel(vowel_entry, word, submit_button):
+    global underscored_word
+    global current_score
+    global messageBox
+
+    vowel_guess = vowel_entry.get()
+    vowels_list = ("a", "e", "i", "o", "u")
+    while vowel_guess not in vowels_list:
+        wrong_guess_output = "Message Box\n\nThat is not a vowel.\nSee list of vowels and try again."
+        messageBox.config(text= wrong_guess_output)
+        getVowel(word)
+
+    if vowel_guess in word: 
+        guess_output = "Message Box\n\nThere is a " + str(vowel_guess) + ". You get $300\nSpin again!"
+        messageBox.config(text= guess_output)
+        fillGameBoard(vowel_guess, word)
+        updateBoard(underscored_word)
+
+        submit_button.config(state=DISABLED)
+
+        current_score = current_score + 300
+        showScore()
+
+    else:
+        guess_output = "Message Box\n\nThere is no " + str(vowel_guess) + "."
+        messageBox.config(text= guess_output)
+
+        submit_button.config(state=DISABLED)
+
+        current_score = current_score + 300
+        showScore()
+
+
+def getVowel(word):
+    global current_score
+    global messageBox
+
+    vowel_message = "Message Box\n\n-$200\nGuess a vowel."
+    messageBox.config(text= vowel_message)
+
+    current_score = current_score - 200
+    showScore()
+
+    vowelWindow = Tk()
+
+    vowel_entry = Entry(vowelWindow, width=10)
+
+    vowel_entry.pack()
+    submit_button = Button(vowelWindow, text="Submit", command = lambda: checkVowel(vowel_entry, word, submit_button))
+    submit_button.pack()
+
+    vowelWindow.mainloop()
+
+
+def checkSolve(solve_entry, word, submit_button):
+    global messageBox
     
+    solve_guess = solve_entry.get()
 
+    print(f"word: {word}")
+    print(f"solve guess: {solve_guess}")
+
+    if solve_guess == word:
+        print("That is correct")
+        correct_guess = "Message Box\n\n That is correct! Congrats you win!"
+        messageBox.config(text= correct_guess)
+
+        submit_button.config(state=DISABLED)
+
+    else:
+        print("That is incorrect")
+        print("That is correct")
+        incorrect_guess = "Message Box\n\n That is incorrect. Sorry you lose."
+        messageBox.config(text= incorrect_guess)
+
+        submit_button.config(state=DISABLED)
+
+
+def solvePuzzle(word):
+    solveWindow = Tk()
+
+    solve_entry = Entry(solveWindow, width=10)
+
+    solve_entry.pack()
+    submit_button = Button(solveWindow, text="Submit", command = lambda: checkSolve(solve_entry, word, submit_button))
+    submit_button.pack()
+
+    solveWindow.mainloop()
 
 
 #----------------------------------------------------------------------------------------------------------------------------------
@@ -206,6 +342,8 @@ def newWindow():
     print(f"Category: {category}")
     print(f"Word: {word}")
 
+    
+
     #Category
     category = Label(gameWindow, 
         text= category, 
@@ -226,7 +364,7 @@ def newWindow():
     spinToWin = Button(gameWindow,
             text = "Spin to Win",
             font = button_font,
-            command = lambda: showSpin(word))
+            command = lambda: showSpin(spinToWin, word))
     
     spinToWin.grid(row=2, column=0, pady =5 , sticky="w")
     
@@ -234,14 +372,16 @@ def newWindow():
     #Buy a Vowel button
     buyAVowel = Button(gameWindow,
             text = "Buy a vowel",
-            font = button_font)
+            font = button_font,
+            command = lambda: getVowel(word))
     
     buyAVowel.grid(row=3, column=0, pady =5 , sticky="w")
 
     #Solve button
     solve = Button(gameWindow,
             text = "Solve",
-            font = button_font)
+            font = button_font,
+            command = (lambda: solvePuzzle(word)))
     
     solve.grid(row=4, column=0, pady = 5, sticky="w")
 
@@ -259,6 +399,7 @@ def newWindow():
     
     messageBox.grid(row= 5, column=0, pady = 5, padx = 5, sticky = "w")
 
+
     def displayTurnMessage():
         turn_message = "It's your turn first. Click Spin to Win!"
         current_text = messageBox.cget("text")  # Get the current text in messageBox
@@ -268,8 +409,9 @@ def newWindow():
     displayTurnMessage()  # Call the function to display the message in messageBox
 
     #Score box. Displays player and CPU scores. 
+    global scoreBox
     scoreBox = Label(gameWindow, 
-        text= "Score Box", 
+        text= "Score Box\n\n$1000", 
         width = 30, 
         height = 10, 
         relief="solid", 
@@ -279,6 +421,7 @@ def newWindow():
         anchor = "nw")
     
     scoreBox.grid(row= 5, column=0, pady = 5, padx = 5, sticky = "e")
+
 
     #Shows available vowels
     vowels = Label(gameWindow,
